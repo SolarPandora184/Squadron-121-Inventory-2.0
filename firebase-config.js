@@ -1,68 +1,34 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getDatabase, ref, set, get, child, push, update, remove } from "firebase/database";
+modules = ["python-3.11"]
+[agent]
+expertMode = true
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDCo2OweTTS-g60MVwL9N-VUCyCyctZavc",
-  authDomain: "squadron-72.firebaseapp.com",
-  databaseURL: "https://squadron-72-default-rtdb.firebaseio.com",
-  projectId: "squadron-72",
-  storageBucket: "squadron-72.firebasestorage.app",
-  messagingSenderId: "572966132981",
-  appId: "1:572966132981:web:44053bbe8c60378647f9bc",
-  measurementId: "G-0D77CRVR83"
-};
+[workflows]
+runButton = "Project"
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const database = getDatabase(app);
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
 
-// Firebase Database Functions for CAP Squadron 121 Inventory System
-export const InventoryDB = {
-  // Add new inventory item
-  async addItem(itemData) {
-    try {
-      const itemsRef = ref(database, 'inventory');
-      const newItemRef = push(itemsRef);
-      await set(newItemRef, {
-        ...itemData,
-        id: newItemRef.key,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-      return { success: true, id: newItemRef.key };
-    } catch (error) {
-      console.error('Error adding item:', error);
-      return { success: false, error: error.message };
-    }
-  },
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Web Server"
 
-  // Get all inventory items
-  async getAllItems() {
-    try {
-      const dbRef = ref(database);
-      const snapshot = await get(child(dbRef, 'inventory'));
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        return Object.values(data);
-      } else {
-        return [];
-      }
-    } catch (error) {
-      console.error('Error getting items:', error);
-      return [];
-    }
-  },
+[[workflows.workflow]]
+name = "Web Server"
+author = "agent"
 
-  // Update existing item
-  async updateItem(itemId, updates) {
-    try {
-      const itemRef = ref(database, `inventory/${itemId}`);
-      await update(itemRef, {
-        ...updates,
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 -m http.server 5000"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80        ...updates,
         updatedAt: new Date().toISOString()
       });
       return { success: true };
